@@ -1,0 +1,35 @@
+with with_name as (
+  select name, 
+         cast(avg(predicted_dep_var/dep_var)*100 as int64)/100 as prediction_precision
+  from ML.PREDICT(MODEL `cryptocurrency.market_cap`,
+    (select 
+        d.quote.USD.market_cap as dep_var,
+        d.quote.USD.percent_change_24h,
+        d.quote.USD.volume_24h,
+        d.symbol,
+        d.name,
+    FROM `finalproject-322423.cryptocurrency.streaming_1`
+    join unnest(data) d
+    where d.quote.USD.price is not null ))
+  group by name),
+
+without_name as (
+  select name, 
+         cast(avg(predicted_dep_var/dep_var)*100 as int64)/100 as prediction_precision
+  from ML.PREDICT(MODEL `cryptocurrency.market_cap_without_name`,
+    (select 
+        d.quote.USD.market_cap as dep_var,
+        d.quote.USD.percent_change_24h,
+        d.quote.USD.volume_24h,
+        d.symbol,
+        d.name,
+    FROM `finalproject-322423.cryptocurrency.streaming_1`
+    join unnest(data) d
+    where d.quote.USD.price is not null ))
+    group by name)
+
+select with_name.name,
+       with_name.prediction_precision as precision_with_name,
+       without_name.prediction_precision as precision_without_name
+from with_name
+  left join without_name on with_name.name = without_name.name
