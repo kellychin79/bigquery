@@ -1,0 +1,3 @@
+SELECT * FROM ML.EVALUATE(MODEL `bigdataassignment2-320523.Assignment2_Data.baro_altitude`,
+TABLE `bigdataassignment2-320523.Assignment2_Data.assign2_live` )
+
