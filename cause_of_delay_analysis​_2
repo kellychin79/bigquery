@@ -1,0 +1,62 @@
+----------------For each route----------------
+with
+--- LOOK AT LATE DEPARTURE BY THE SAME ORIGIN AND DESTINATION AIRPORT 
+dep_avg as (
+    SELECT CONCAT(ORIGIN, '_', DEST) AS id, AVG(DEP_DELAY) AS avg_dep_delay
+    FROM `bdw7-318600.bdw7_dataset.bdw7_table1`   
+    GROUP BY ORIGIN, DEST),
+dep_base as (
+    SELECT CONCAT(ORIGIN, '_', DEST) AS id, DEP_DELAY
+    FROM `bdw7-318600.bdw7_dataset.bdw7_table1`),
+dep_analysis as (
+    SELECT dep_base.id, count(*) as connect_prep_mechnical
+    FROM dep_base left join dep_avg  on dep_base.id = dep_avg.id 
+    WHERE dep_base.DEP_DELAY > dep_avg.avg_dep_delay
+    GROUP BY dep_base.id),
+--- LOOK AT LONGER TAXI_OUT BY THE SAME FLIGHT AND ORIGIN AIRPORT
+taxiout_avg as (
+    SELECT CONCAT(ORIGIN, '_', DEST) AS id, AVG(TAXI_OUT) AS avg_taxi_out
+    FROM `bdw7-318600.bdw7_dataset.bdw7_table1`   
+    GROUP BY ORIGIN, DEST),
+taxiout_base as (
+    SELECT CONCAT(ORIGIN, '_', DEST) AS id, TAXI_OUT
+    FROM `bdw7-318600.bdw7_dataset.bdw7_table1`),
+taxiout_analysis as (
+    SELECT taxiout_base.id, count(*) as air_traffic_control 
+    FROM taxiout_base left join taxiout_avg  on taxiout_base.id = taxiout_avg.id 
+    WHERE taxiout_base.TAXI_OUT > taxiout_avg.avg_taxi_out
+    GROUP BY taxiout_base.id),
+--- LOOK AT LONGER AIR TIME BY THE SAME FLIGHT AND ORIGIN TO ARRIVAL AIRPORT
+air_time_avg as (
+    SELECT CONCAT(ORIGIN, '_', DEST) AS id, 
+           AVG(CAST(WHEELS_ON as numeric)-CAST(WHEELS_OFF as numeric)) AS avg_air_time
+    FROM `bdw7-318600.bdw7_dataset.bdw7_table1` 
+    GROUP BY ORIGIN, DEST),
+air_time_base as (
+    SELECT CONCAT(ORIGIN, '_', DEST) AS id, 
+           CAST(WHEELS_ON as numeric)-CAST(WHEELS_OFF as numeric) AS AIR_TIME      
+    FROM `bdw7-318600.bdw7_dataset.bdw7_table1`),
+air_time_analysis as (
+    SELECT air_time_base.id, count(*) as adverse_weather
+    FROM air_time_base left join air_time_avg  on air_time_base.id = air_time_avg.id 
+    WHERE air_time_base.AIR_TIME > air_time_avg.avg_air_time
+    GROUP BY air_time_base.id),
+--- LOOK AT LONGER TAXI_IN BY THE SAME FLIGHT AND ARRIVAL AIRPORT
+taxiin_avg as (
+    SELECT CONCAT(ORIGIN, '_', DEST) AS id, AVG(TAXI_IN) AS avg_taxi_in
+    FROM `bdw7-318600.bdw7_dataset.bdw7_table1`   
+    GROUP BY ORIGIN, DEST),
+taxiin_base as (
+    SELECT CONCAT(ORIGIN, '_', DEST) AS id, TAXI_IN
+    FROM `bdw7-318600.bdw7_dataset.bdw7_table1`),
+taxiin_analysis as (
+    SELECT taxiin_base.id, count(*) as conjested_airport
+    FROM taxiin_base left join taxiin_avg  on taxiin_base.id = taxiin_avg.id 
+    WHERE taxiin_base.TAXI_IN > taxiin_avg.avg_taxi_in
+    GROUP BY taxiin_base.id)
+
+SELECT da.id as route_id,connect_prep_mechnical, air_traffic_control, adverse_weather, conjested_airport 
+FROM dep_analysis as da 
+    LEFT JOIN taxiout_analysis as toa on toa.id = da.id
+    LEFT JOIN air_time_analysis as aa on aa.id = toa.id  
+    LEFT JOIN taxiin_analysis as tia on tia.id = aa.id
