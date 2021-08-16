@@ -1,0 +1,11 @@
+SELECT 
+    CASE WHEN CANCELLATION_CODE='A' THEN 'Carrier'
+         WHEN CANCELLATION_CODE='B' THEN 'Weather'
+         WHEN CANCELLATION_CODE='C' THEN 'National Air System'
+         WHEN CANCELLATION_CODE='D' THEN 'Security'
+         WHEN CANCELLATION_CODE='X' THEN 'Unknown'
+         ELSE 'As Planned' END AS cancellation_reason,
+         COUNT(*) as cancelled_count
+FROM `bdw7-318600.bdw7_dataset.bdw7_table1` 
+GROUP BY CANCELLATION_CODE 
+ORDER BY CANCELLATION_CODE ASC
