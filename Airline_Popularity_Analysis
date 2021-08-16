@@ -1,7 +1,0 @@
-SELECT airlines.AIRLINE, count(airlines.AIRLINE) as COUNT
-FROM `double-kite-307506.assignment1_test.assignment1_test_v2` as main
-left join `double-kite-307506.assignment1_test.airlines` as airlines
-on airlines.IATA_CODE = main.UNIQUE_CARRIER
-group by airlines.AIRLINE
-order by COUNT desc
-limit 10
