@@ -1,0 +1,33 @@
+with base as (
+    SELECT main.origin, main.FL_DATE, airports.STATE,
+           concat(airports.LONGITUDE,',',airports.LATITUDE) as long_lat
+    FROM `bdw7-318600.bdw7_dataset.bdw7_table1` as main
+    LEFT JOIN `bdw7-318600.bdw7_dataset.airport_table` as airports
+    ON main.origin = airports.IATA_CODE),
+pre_origin as (
+    SELECT long_lat, state, count(*) as pre_origin_count
+    FROM base
+    WHERE EXTRACT(YEAR from CAST(FL_DATE AS DATETIME)) in (2018,2019)
+    GROUP BY long_lat, state),
+covid_origin as (
+    SELECT long_lat, state, count(*) as covid_origin_count
+    FROM base
+    WHERE EXTRACT(YEAR from CAST(FL_DATE AS DATETIME)) in (2020)
+    GROUP BY long_lat, state),
+post_origin as (
+    SELECT long_lat, state, count(*) as post_origin_count
+    FROM base
+    WHERE EXTRACT(YEAR from CAST(FL_DATE AS DATETIME)) in (2021)
+    GROUP BY long_lat, state)
+
+select pre_origin.long_lat,
+       pre_origin.state,
+       pre_origin.pre_origin_count,
+       covid_origin.covid_origin_count,
+       post_origin.post_origin_count,
+from pre_origin 
+    left join covid_origin on pre_origin.long_lat  = covid_origin.long_lat
+    left join post_origin on covid_origin.long_lat = post_origin.long_lat
+where pre_origin.long_lat is not null
+ORDER BY pre_origin.long_lat
+
