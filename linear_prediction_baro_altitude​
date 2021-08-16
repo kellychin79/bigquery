@@ -1,0 +1,14 @@
+SELECT * FROM ML.PREDICT(MODEL `bigdataassignment2-320523.Assignment2_Data.baro_altitude`, 
+(
+SELECT 
+    baro_altitude,
+    altitude, 
+    longitude, 
+    latitude, 
+    vertical_rate, 
+    icao24,
+    velocity
+FROM `bigdataassignment2-320523.Assignment2_Data.assign2_live` 
+WHERE baro_altitude IS NOT NULL
+))
+
