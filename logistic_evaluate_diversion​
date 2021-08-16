@@ -1,0 +1,18 @@
+SELECT * FROM ML.EVALUATE(MODEL `bigdataassignment2-320523.Assignment2_Data.diverted`,  
+(
+SELECT 
+    DIVERTED,
+    CARRIER,
+    EXTRACT(YEAR FROM FL_DATE) AS YEAR,
+    Month,
+    DayOfTheWeek,
+    ORIGIN,
+    DEST,
+    DEP_TIME,
+    DEP_DELAY,
+    (WHEELS_OFF-WHEELS_ON) AS AIR_TIME,
+    DISTANCE
+FROM `bigdataassignment2-320523.Assignment2_Data.flights2018to2021AddTailAssignment1`
+WHERE DIVERTED IS NOT NULL
+))
+
