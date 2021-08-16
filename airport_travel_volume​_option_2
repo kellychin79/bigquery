@@ -1,0 +1,20 @@
+with base as (
+    SELECT CONCAT(airports.LATITUDE,',',airports.LONGITUDE,'(',airports.AIRPORT,')') as location, 
+           CAST(SUBSTR(main.FL_DATE,1,4) AS numeric) AS year,
+           COUNT(*) as total_count,
+           CASE WHEN SUBSTR(main.FL_DATE,1,4) in ('2018','2019') then 'Pre-COVID'
+                WHEN SUBSTR(main.FL_DATE,1,4) in ('2020') then 'COVID'
+                ELSE 'Post-COVID' END AS label
+    FROM `bdw7-318600.bdw7_dataset.bdw7_table1` as main
+    LEFT JOIN `bdw7-318600.bdw7_dataset.airport_table` as airports
+    ON main.origin = airports.IATA_CODE
+    GROUP BY location, airports.AIRPORT, year, label)
+
+select location, label,
+       case when label = 'Pre-COVID' then cast(sum(total_count)/24 as int)
+            when label = 'COVID' then cast(sum(total_count)/12 as int)
+        else cast(sum(total_count)/4 as int)
+        end as monthly_volume
+from base
+GROUP BY location, label
+ORDER BY location DESC
