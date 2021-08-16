@@ -1,0 +1,12 @@
+CREATE OR REPLACE MODEL `cryptocurrency.market_cap_with_name`
+OPTIONS (model_type='linear_reg', input_label_cols=['dep_var']) as
+SELECT
+d.quote.USD.market_cap as dep_var,
+d.quote.USD.percent_change_24h,
+d.quote.USD.volume_24h,
+d.symbol, 
+d.name
+FROM `finalproject-322423.cryptocurrency.archival` 
+left join unnest(data) d
+where d.quote.USD.price is not null 
+
